@@ -55,7 +55,7 @@ Smart-Ops-Term 是一个基于 Python 的 GUI 应用程序，实现**"人机协�
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/your-username/Smart-Ops-Term.git
+git clone https://github.com/orphiczhou/Smart-Ops-Term.git
 cd Smart-Ops-Term
 ```
 
@@ -376,7 +376,7 @@ OPENAI_MODEL=your-model-name
 
 **环境设置**：
 ```bash
-git clone https://github.com/your-username/Smart-Ops-Term.git
+git clone https://github.com/orphiczhou/Smart-Ops-Term.git
 cd Smart-Ops-Term
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
@@ -403,8 +403,8 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ## 📞 联系方式
 
-- **项目主页**: [GitHub Repository](https://github.com/your-username/Smart-Ops-Term)
-- **问题反馈**: [Issues](https://github.com/your-username/Smart-Ops-Term/issues)
+- **项目主页**: [GitHub Repository](https://github.com/orphiczhou/Smart-Ops-Term)
+- **问题反馈**: [Issues](https://github.com/orphiczhou/Smart-Ops-Term/issues)
 - **文档中心**:
   - [架构设计说明书](ARCHITECTURE.md)
   - [开发更新记录](CHANGELOG.md)
