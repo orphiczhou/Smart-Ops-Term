@@ -1,0 +1,26 @@
+Smart-Ops-Term v1.0.0
+Release Date: 2025-01-08
+Status: Stable Release
+
+Version Details:
+- Major: 1
+- Minor: 0
+- Patch: 0
+
+Release Notes:
+- AI 自动反馈机制（执行命令后自动分析结果）
+- 密码输入支持（sudo 等交互式命令）
+- AI 上下文记忆（保留最近 10 条对话历史）
+- 完整的 ANSI 颜色支持（16 色 + 样式）
+- 多种 Bug 修复（命令重复、行距、换行等）
+
+Tech Stack:
+- Python 3.10+
+- PyQt6 6.7.0
+- Paramiko 3.4.0
+- OpenAI SDK >=1.50.0
+
+Documentation:
+- Architecture: ARCHITECTURE.md
+- Changelog: CHANGELOG.md
+- README: README.md

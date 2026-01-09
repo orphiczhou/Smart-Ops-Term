@@ -1,0 +1,11 @@
+# GUI Framework
+PyQt6==6.7.0
+
+# SSH/Telnet Libraries
+paramiko==3.4.0
+
+# AI SDK - Updated to latest for Python 3.14 compatibility
+openai>=1.50.0
+
+# Utilities
+python-dotenv==1.0.1
