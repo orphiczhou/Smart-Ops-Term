@@ -1,5 +1,5 @@
 {
-  "api_key": "s5bc988accbda4be4844905d3a1bd268f.cMx1uxV6747iP9SE",
+  "api_key": "your-api-key-here",
   "api_base": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
   "model": "glm-4.6",
   "default_host": "192.168.3.20",
