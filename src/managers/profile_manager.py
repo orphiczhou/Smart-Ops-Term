@@ -13,8 +13,8 @@ class ProfileManager:
 
     DEFAULT_CONFIG_PATH = Path.home() / '.smartops' / 'connections.json'
 
-    def __init__(self, config_path: Optional[Path] = None):
-        self.config_path = config_path or self.DEFAULT_CONFIG_PATH
+    def __init__(self, config_path: Optional[Path | str] = None):
+        self.config_path = Path(config_path) if config_path else self.DEFAULT_CONFIG_PATH
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         self.profiles: Dict[str, ConnectionProfile] = {}
         self.load()
