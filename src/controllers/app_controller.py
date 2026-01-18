@@ -363,11 +363,23 @@ class AppController(QObject):
         """
         self.main_window.chat_widget.show_error(error_msg)
 
-    def cleanup(self):
-        """Cleanup resources before exit."""
+    def cleanup(self) -> None:
+        """Cleanup all resources before exit."""
+        # Stop and cleanup timer
+        if self._ai_feedback_timer:
+            self._ai_feedback_timer.stop()
+            self._ai_feedback_timer.deleteLater()
+            self._ai_feedback_timer = None
+
+        # Close SSH connection
         if self.ssh_handler:
             self.ssh_handler.close()
+            self.ssh_handler = None
 
         # Clear AI conversation history
         if self.ai_client:
             self.ai_client.clear_history()
+
+        # Clear terminal context
+        if self.terminal_context:
+            self.terminal_context.clear()
