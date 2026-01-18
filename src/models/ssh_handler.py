@@ -20,6 +20,7 @@ class SSHHandler(ConnectionHandler):
         self.channel = None
         self._read_thread = None
         self._stop_reading = False
+        self._state_lock = threading.Lock()
 
     def connect(self, host, port, username, password=None, timeout=10):
         """
@@ -66,7 +67,8 @@ class SSHHandler(ConnectionHandler):
             self.channel.send('alias grep="grep --color=always"\n')  # Force grep to use colors
             self.channel.send('clear\n')  # Clear screen to clean up initialization messages
 
-            self._connected = True
+            with self._state_lock:
+                self._connected = True
             self.connection_established.emit()
 
             # Start reading thread
@@ -77,13 +79,16 @@ class SSHHandler(ConnectionHandler):
             return True, "Connected successfully"
 
         except paramiko.AuthenticationException:
-            self._connected = False
+            with self._state_lock:
+                self._connected = False
             return False, "Authentication failed. Please check your credentials."
         except paramiko.SSHException as e:
-            self._connected = False
+            with self._state_lock:
+                self._connected = False
             return False, f"SSH connection failed: {str(e)}"
         except Exception as e:
-            self._connected = False
+            with self._state_lock:
+                self._connected = False
             return False, f"Connection error: {str(e)}"
 
     def send_command(self, command):
@@ -108,7 +113,12 @@ class SSHHandler(ConnectionHandler):
         Background thread to continuously read output from SSH channel.
         Emits data_received signal with new data.
         """
-        while self._connected and not self._stop_reading:
+        while True:
+            with self._state_lock:
+                if not self._connected or self._stop_reading:
+                    should_exit = not self._connected
+                    if should_exit:
+                        break
             try:
                 if self.channel and self.channel.recv_ready():
                     # Read data from channel
@@ -121,19 +131,21 @@ class SSHHandler(ConnectionHandler):
                     # Small sleep to prevent busy waiting
                     time.sleep(0.01)
             except Exception as e:
-                if self._connected:
-                    self.connection_lost.emit(f"Read error: {str(e)}")
-                break
+                with self._state_lock:
+                    if self._connected:
+                        self.connection_lost.emit(f"Read error: {str(e)}")
+                    break
 
-        # If we exit the loop, connection is lost
-        if self._connected:
-            self._connected = False
-            self.connection_lost.emit("Connection closed")
+        with self._state_lock:
+            if self._connected:
+                self._connected = False
+                self.connection_lost.emit("Connection closed")
 
     def close(self):
         """Close SSH connection."""
-        self._stop_reading = True
-        self._connected = False
+        with self._state_lock:
+            self._stop_reading = True
+            self._connected = False
 
         if self.channel:
             try:
