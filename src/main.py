@@ -1,6 +1,7 @@
 """
 Smart-Ops-Term - AI Assisted Remote Terminal
 Main entry point for the application.
+v1.5.0: Multi-tab terminal window.
 """
 import sys
 import os
@@ -10,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
-from controllers.app_controller import AppController
+from views.multi_terminal_window import MultiTerminalWindow
 
 
 def main():
@@ -26,15 +27,12 @@ def main():
     app.setApplicationName("Smart-Ops-Term")
     app.setOrganizationName("SmartOps")
 
-    # Create and start controller
-    controller = AppController()
-    controller.start()
+    # Create multi-terminal window
+    window = MultiTerminalWindow()
+    window.show()
 
     # Run event loop
     exit_code = app.exec()
-
-    # Cleanup
-    controller.cleanup()
 
     sys.exit(exit_code)
 
