@@ -3,8 +3,7 @@ Multi-tab terminal window for v1.5.0.
 Supports multiple SSH connections in tabbed interface.
 """
 from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QWidget,
-                             QHBoxLayout, QVBoxLayout, QPushButton,
-                             QMessageBox, QToolBar, QLabel)
+                             QHBoxLayout, QMessageBox, QToolBar, QLabel)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QShortcut, QAction
 from views.terminal_widget import TerminalWidget
@@ -44,6 +43,7 @@ class MultiTerminalWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # Main layout
+        from PyQt6.QtWidgets import QVBoxLayout
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(5, 5, 5, 5)
         main_layout.setSpacing(5)
@@ -127,7 +127,7 @@ class MultiTerminalWindow(QMainWindow):
         # Show connection dialog if no info provided
         if conn_info is None:
             dialog = ConnectionDialog(self)
-            if dialog.exec() != QDialog.DialogCode.Accepted:
+            if dialog.exec() != 1:  # QDialog.DialogCode.Accepted == 1
                 return None
             conn_info = dialog.get_connection_info()
 
@@ -168,12 +168,8 @@ class MultiTerminalWindow(QMainWindow):
             controller = SessionController(session_id, terminal, chat, self.ai_client, self)
             controller.initialize(ssh_handler)
 
-            # Connect AI signals
-            self.ai_client.response_received.connect(controller._on_ai_response)
-            self.ai_client.error_occurred.connect(controller._on_ai_error)
-
-            # Connect terminal connect button
-            terminal.connect_requested.connect(lambda: self._handle_session_connect(session_id))
+            # Connect terminal connect button to re-connect in this session
+            terminal.connect_requested.connect(lambda: self._handle_session_reconnect(session_id))
 
             # Store session
             self.sessions[session_id] = {
@@ -186,25 +182,31 @@ class MultiTerminalWindow(QMainWindow):
             }
 
             # Add tab
-            tab_name = conn_info.get('name', f"{conn_info['host']}:{conn_info['port']}")
+            tab_name = f"{conn_info['host']}:{conn_info['port']}"
             index = self.tab_widget.addTab(session_widget, tab_name)
             self.tab_widget.setCurrentIndex(index)
 
-            # Auto-connect if conn_info provided
+            # Auto-connect
             success = controller.connect_to_server(conn_info)
             if not success:
-                QMessageBox.warning(self, "Connection Failed",
-                                   f"Could not connect to {conn_info['host']}")
+                # Connection failed but keep the tab open
+                terminal.append_output(f"\n=== Connection to {conn_info['host']} failed ===\n")
+                terminal.append_output("You can try connecting again using the Connect button.\n")
 
             self._update_session_count()
 
             return session_id
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to create session: {str(e)}")
+            import traceback
+            error_msg = f"Failed to create session: {str(e)}\n\n{traceback.format_exc()}"
+            QMessageBox.critical(self, "Error", error_msg)
             # Cleanup
             if ssh_handler:
-                ssh_handler.close()
+                try:
+                    ssh_handler.close()
+                except:
+                    pass
             return None
 
     def quick_connect(self):
@@ -257,7 +259,7 @@ class MultiTerminalWindow(QMainWindow):
 
         session_info = self.sessions[session_id]
 
-        # Cleanup controller
+        # Cleanup controller (this will disconnect AI signals)
         controller = session_info['controller']
         controller.cleanup()
 
@@ -272,15 +274,22 @@ class MultiTerminalWindow(QMainWindow):
 
         self._update_session_count()
 
-    def _handle_session_connect(self, session_id: str):
-        """Handle connect button click in terminal."""
-        # For now, just show the connection dialog
-        # The new connection will create a new tab
-        self.new_connection()
+    def _handle_session_reconnect(self, session_id: str):
+        """Handle re-connect button click in terminal."""
+        if session_id not in self.sessions:
+            return
+
+        session_info = self.sessions[session_id]
+        controller = session_info['controller']
+        conn_info = session_info['conn_info']
+
+        # Try to reconnect
+        success = controller.connect_to_server(conn_info)
+        if not success:
+            session_info['terminal'].append_output(f"\n=== Reconnection failed ===\n")
 
     def _on_tab_changed(self, index: int):
         """Handle tab change event."""
-        # Could update status bar or perform other actions when tab changes
         pass
 
     def _next_tab(self):

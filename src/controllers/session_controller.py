@@ -54,6 +54,10 @@ class SessionController(QObject):
             for pattern in AppConstants.PASSWORD_PATTERNS
         ]
 
+        # AI signal handlers (will be set in initialize)
+        self._ai_response_handler = None
+        self._ai_error_handler = None
+
     def initialize(self, ssh_handler: SSHHandler):
         """Initialize session with SSH handler."""
         self.ssh_handler = ssh_handler
@@ -69,6 +73,14 @@ class SessionController(QObject):
         # Connect AI chat signals
         self.chat_widget.message_sent.connect(self._handle_ai_message)
         self.chat_widget.command_execute_requested.connect(self._handle_command_execution)
+
+        # Create unique AI signal handlers for this session
+        # Use a wrapper to track which session should handle the response
+        self._ai_response_handler = lambda resp: self._on_ai_response(resp)
+        self._ai_error_handler = lambda err: self._on_ai_error(err)
+
+        self.ai_client.response_received.connect(self._ai_response_handler)
+        self.ai_client.error_occurred.connect(self._ai_error_handler)
 
     def connect_to_server(self, conn_info: dict) -> bool:
         """
@@ -294,6 +306,18 @@ class SessionController(QObject):
 
     def cleanup(self):
         """Cleanup session resources."""
+        # Disconnect AI signals first to prevent crashes
+        try:
+            if self._ai_response_handler:
+                self.ai_client.response_received.disconnect(self._ai_response_handler)
+            if self._ai_error_handler:
+                self.ai_client.error_occurred.disconnect(self._ai_error_handler)
+        except:
+            pass
+
+        self._ai_response_handler = None
+        self._ai_error_handler = None
+
         # Stop and cleanup timer
         if self._ai_feedback_timer:
             self._ai_feedback_timer.stop()
