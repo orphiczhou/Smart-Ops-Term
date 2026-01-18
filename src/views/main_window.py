@@ -240,14 +240,3 @@ class MainWindow(QMainWindow):
         """Show message when disconnected."""
         self.update_status("Disconnected from server")
         self.terminal_widget.set_connection_status(False)
-
-    def _show_connection_dialog(self):
-        """Show SSH connection dialog."""
-        dialog = ConnectionDialog(self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            conn_info = dialog.get_connection_info()
-            if conn_info['host'] and conn_info['username']:
-                self.connect_requested.emit(conn_info)
-            else:
-                QMessageBox.warning(self, "Connection Error",
-                                    "Please provide host and username.")
