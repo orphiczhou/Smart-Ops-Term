@@ -211,6 +211,45 @@ class AppController(QObject):
             import traceback
             self.main_window.chat_widget.append_system_message(f"[ERROR] {traceback.format_exc()}")
 
+    def _display_data(self, data: str) -> None:
+        """Display data to terminal with HTML formatting."""
+        html_data = ansi_to_html(data)
+        self.main_window.terminal_widget.append_output_html(html_data)
+
+    def _update_context(self, data: str) -> None:
+        """Update terminal context manager."""
+        clean_data = strip_ansi(data)
+        self.terminal_context.append(clean_data)
+
+    def _check_password_prompt(self, data: str) -> None:
+        """Check if data contains password prompt."""
+        if self._waiting_for_password:
+            return
+
+        clean_data = strip_ansi(data)
+        for pattern in self._password_prompt_patterns:
+            if pattern.search(clean_data):
+                self._handle_password_prompt()
+                break
+
+    def _trigger_ai_feedback_if_needed(self) -> None:
+        """Trigger AI feedback if waiting for command output."""
+        if not self._waiting_for_ai_feedback:
+            return
+
+        if self._ai_feedback_timer:
+            self._ai_feedback_timer.stop()
+
+        self._ai_feedback_timer = QTimer()
+        self._ai_feedback_timer.setSingleShot(True)
+        self._ai_feedback_timer.timeout.connect(self._send_feedback_to_ai)
+        self._ai_feedback_timer.start(AppConstants.AI_FEEDBACK_DELAY_MS)
+
+    def _handle_error(self, location: str, error: Exception) -> None:
+        """Handle and display error message."""
+        error_msg = f"[ERROR] {location}: {str(error)}"
+        self.main_window.chat_widget.append_system_message(error_msg)
+
     @pyqtSlot(str)
     def _on_data_received(self, data):
         """
@@ -221,38 +260,12 @@ class AppController(QObject):
             data: Text data received from server
         """
         try:
-            # Convert ANSI sequences to HTML for colored display
-            html_data = ansi_to_html(data)
-
-            # Update terminal display with HTML (colored output)
-            self.main_window.terminal_widget.append_output_html(html_data)
-
-            # Store plain text version in context manager for AI
-            clean_data = strip_ansi(data)
-            self.terminal_context.append(clean_data)
-
-            # Check if this is a password prompt (use cleaned data)
-            if not self._waiting_for_password:
-                for pattern in self._password_prompt_patterns:
-                    if pattern.search(clean_data):
-                        self._handle_password_prompt()
-                        break
-
-            # If we're waiting for AI feedback, trigger it after a short delay
-            if self._waiting_for_ai_feedback:
-                # Reset the timer on each data received (wait for command to finish)
-                if self._ai_feedback_timer:
-                    self._ai_feedback_timer.stop()
-
-                # Create timer to detect when command execution is complete (1 second of no new data)
-                self._ai_feedback_timer = QTimer()
-                self._ai_feedback_timer.setSingleShot(True)
-                self._ai_feedback_timer.timeout.connect(self._send_feedback_to_ai)
-                self._ai_feedback_timer.start(AppConstants.AI_FEEDBACK_DELAY_MS)
+            self._display_data(data)
+            self._update_context(data)
+            self._check_password_prompt(data)
+            self._trigger_ai_feedback_if_needed()
         except Exception as e:
-            self.main_window.chat_widget.append_system_message(f"[ERROR] {str(e)}")
-            import traceback
-            self.main_window.chat_widget.append_system_message(f"[ERROR] {traceback.format_exc()}")
+            self._handle_error("_on_data_received", e)
 
     @pyqtSlot()
     def _on_connection_established(self):
