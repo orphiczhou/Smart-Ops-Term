@@ -9,6 +9,7 @@ from views.password_dialog import PasswordDialog
 from ai.ai_client import AIClient
 from ai.context_manager import TerminalContext
 from utils.ansi_filter import ansi_to_html, strip_ansi
+from config.constants import AppConstants
 import re
 
 
@@ -28,19 +29,18 @@ class AppController(QObject):
         self._ai_feedback_timer = None  # Timer to detect when command execution is complete
         self._waiting_for_password = False  # Track if we're waiting for password input
         self._password_prompt_patterns = [
-            re.compile(r'password\s*:', re.IGNORECASE),
-            re.compile(r'password\s*for\s+\S+:', re.IGNORECASE),
-            re.compile(r'enter\s+password', re.IGNORECASE),
-            re.compile(r'\[sudo\]\s+password', re.IGNORECASE),
-            re.compile(r'密码\s*:', re.IGNORECASE),
-            re.compile(r'请输入密码', re.IGNORECASE),
+            re.compile(pattern, re.IGNORECASE)
+            for pattern in AppConstants.PASSWORD_PATTERNS
         ]
 
     def start(self):
         """Initialize and start the application."""
         # Create AI client
         self.ai_client = AIClient()
-        self.terminal_context = TerminalContext(max_lines=500, max_chars=3000)
+        self.terminal_context = TerminalContext(
+            max_lines=AppConstants.TERMINAL_MAX_LINES,
+            max_chars=AppConstants.TERMINAL_MAX_CHARS
+        )
 
         # Create main window
         self.main_window = MainWindow()
@@ -92,7 +92,7 @@ class AppController(QObject):
                 port=conn_info['port'],
                 username=conn_info['username'],
                 password=conn_info['password'],
-                timeout=10
+                timeout=AppConstants.SSH_TIMEOUT_SECONDS
             )
 
             if not success:
@@ -248,7 +248,7 @@ class AppController(QObject):
                 self._ai_feedback_timer = QTimer()
                 self._ai_feedback_timer.setSingleShot(True)
                 self._ai_feedback_timer.timeout.connect(self._send_feedback_to_ai)
-                self._ai_feedback_timer.start(1000)  # Wait 1 second after last data
+                self._ai_feedback_timer.start(AppConstants.AI_FEEDBACK_DELAY_MS)
         except Exception as e:
             self.main_window.chat_widget.append_system_message(f"[ERROR] {str(e)}")
             import traceback
@@ -297,7 +297,7 @@ class AppController(QObject):
             self._ai_feedback_timer = None
 
             # Show indicator in chat
-            self.main_window.chat_widget.append_system_message("正在分析命令执行结果...")
+            self.main_window.chat_widget.append_system_message(AppConstants.MSG_ANALYZING_OUTPUT)
 
             # Get recent terminal context
             context = self.terminal_context.get_context()
