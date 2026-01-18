@@ -95,15 +95,23 @@ class SessionController(QObject):
         if not self.ssh_handler:
             return False
 
-        success, message = self.ssh_handler.connect(
-            host=conn_info['host'],
-            port=conn_info['port'],
-            username=conn_info['username'],
-            password=conn_info['password'],
-            timeout=AppConstants.SSH_TIMEOUT_SECONDS
-        )
+        if not conn_info:
+            return False
 
-        return success
+        try:
+            success, message = self.ssh_handler.connect(
+                host=conn_info.get('host', ''),
+                port=conn_info.get('port', 22),
+                username=conn_info.get('username', ''),
+                password=conn_info.get('password', ''),
+                timeout=AppConstants.SSH_TIMEOUT_SECONDS
+            )
+            return success
+        except Exception as e:
+            import traceback
+            self.terminal_widget.append_output(f"Connection error: {str(e)}\n")
+            self.terminal_widget.append_output(f"{traceback.format_exc()}\n")
+            return False
 
     def disconnect(self):
         """Disconnect from server."""
