@@ -5,7 +5,8 @@ Supports chat history, markdown rendering, and command suggestions.
 import re
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QTextEdit,
                              QLabel, QPushButton, QHBoxLayout,
-                             QFrame, QSplitter, QCheckBox, QScrollArea)
+                             QFrame, QSplitter, QCheckBox, QScrollArea,
+                             QComboBox)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QTextCharFormat, QColor, QFont
 
@@ -14,13 +15,37 @@ class MessageBubble(QFrame):
     """
     A styled message bubble for chat interface.
     Supports left/right alignment and different colors for different senders.
+    支持流式更新内容。
     """
 
     def __init__(self, sender: str, message: str, parent=None):
         super().__init__(parent)
         self.sender = sender
         self.message = message
+        self.message_label = None  # 保存引用以便更新
         self._setup_ui()
+
+    def update_message(self, new_message: str):
+        """
+        更新消息内容（用于流式显示）
+
+        Args:
+            new_message: 新的完整消息内容
+        """
+        self.message = new_message
+        if self.message_label:
+            self.message_label.setText(new_message)
+
+    def append_content(self, content: str):
+        """
+        追加内容到当前消息（用于流式显示）
+
+        Args:
+            content: 要追加的内容
+        """
+        self.message += content
+        if self.message_label:
+            self.message_label.setText(self.message)
 
     def _setup_ui(self):
         """Setup message bubble UI."""
@@ -40,6 +65,7 @@ class MessageBubble(QFrame):
 
         # Message content
         message_label = QLabel(self.message)
+        self.message_label = message_label  # 保存引用以便流式更新
         message_label.setWordWrap(True)
         message_label.setTextFormat(Qt.TextFormat.RichText)  # Enable HTML rendering
         message_label.setOpenExternalLinks(False)  # Don't open links automatically
@@ -94,15 +120,19 @@ class AIChatWidget(QWidget):
     """
     AI chat interface for interacting with the AI assistant.
     Phase 2: Full implementation with AI integration.
+    v1.6.1: 添加 AI profile 切换功能
     """
 
     # Signals
     message_sent = pyqtSignal(str)  # Emitted when user sends a message
     command_execute_requested = pyqtSignal(str)  # Emitted when user clicks execute on a command
+    ai_profile_changed = pyqtSignal(str)  # Emitted when AI profile is changed
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.privacy_mode = False
+        self.streaming_bubble = None  # 当前流式消息气泡
+        self.streaming_buffer = ""  # 流式内容缓冲区
         self._setup_ui()
 
     def _setup_ui(self):
@@ -119,6 +149,13 @@ class AIChatWidget(QWidget):
         header_layout.addWidget(title_label)
 
         header_layout.addStretch()
+
+        # AI Profile selector
+        self.ai_profile_combo = QComboBox()
+        self.ai_profile_combo.setMinimumWidth(120)
+        self.ai_profile_combo.setToolTip("选择 AI 配置")
+        self.ai_profile_combo.currentIndexChanged.connect(self._on_ai_profile_changed)
+        header_layout.addWidget(self.ai_profile_combo)
 
         # Privacy mode checkbox
         self.privacy_checkbox = QCheckBox("Privacy Mode")
@@ -215,6 +252,8 @@ class AIChatWidget(QWidget):
     def _toggle_privacy_mode(self, state):
         """Toggle privacy mode."""
         self.privacy_mode = (state == 2)  # Qt.CheckState.Checked
+        # Debug output
+        print(f"[DEBUG] Privacy Mode toggled: {self.privacy_mode} (state={state})", flush=True)
 
     def _send_message(self):
         """Send message to AI."""
@@ -345,6 +384,64 @@ class AIChatWidget(QWidget):
 
         return response
 
+    def start_streaming_response(self):
+        """
+        开始流式响应，创建一个空的消息气泡用于逐步更新
+
+        Returns:
+            创建的消息气泡
+        """
+        # 创建一个初始为空的消息气泡
+        bubble = MessageBubble("AI", "Thinking...", self.chat_container)
+        self.chat_layout.addWidget(bubble)
+
+        # 保存引用
+        self.streaming_bubble = bubble
+        self.streaming_buffer = ""
+
+        # 立即滚动到底部
+        self._scroll_to_bottom()
+
+        return bubble
+
+    def append_streaming_content(self, content: str):
+        """
+        追加流式内容到当前消息
+
+        Args:
+            content: 新收到的内容块
+        """
+        if self.streaming_bubble:
+            self.streaming_buffer += content
+            # 实时格式化并显示（简化版，不做完整 markdown 渲染以提高性能）
+            formatted = self._format_ai_response(self.streaming_buffer)
+            self.streaming_bubble.update_message(formatted)
+
+            # 滚动到底部
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(10, self._scroll_to_bottom)
+
+    def finish_streaming_response(self, full_response: str):
+        """
+        完成流式响应，执行最终渲染
+
+        Args:
+            full_response: 完整的响应内容
+        """
+        # 清除流式状态
+        self.streaming_bubble = None
+        self.streaming_buffer = ""
+
+        # 使用完整响应重新渲染（包括命令卡片等）
+        # 先移除临时气泡
+        if self.chat_layout.count() > 0:
+            last_item = self.chat_layout.takeAt(self.chat_layout.count() - 1)
+            if last_item.widget():
+                last_item.widget().deleteLater()
+
+        # 正常渲染完整响应
+        self.append_ai_response(full_response)
+
     def show_error(self, error_msg: str):
         """
         Show error message in chat.
@@ -415,6 +512,65 @@ class AIChatWidget(QWidget):
             </span>
             """
             self._append_message("System", warning_html)
+
+    def load_ai_profiles(self, current_profile: str = None):
+        """
+        加载可用的 AI profile 列表到下拉框
+
+        Args:
+            current_profile: 当前选中的 profile 名称
+        """
+        try:
+            from managers.ai_profile_manager import AIProfileManager
+            ai_manager = AIProfileManager()
+            profiles = ai_manager.get_all_profiles()
+
+            # 阻止信号发送以避免重复触发
+            self.ai_profile_combo.blockSignals(True)
+            self.ai_profile_combo.clear()
+
+            if profiles:
+                for profile in profiles:
+                    self.ai_profile_combo.addItem(profile.name, profile.name)
+
+                # 设置当前选中的 profile
+                if current_profile:
+                    index = self.ai_profile_combo.findData(current_profile)
+                    if index >= 0:
+                        self.ai_profile_combo.setCurrentIndex(index)
+                else:
+                    # 尝试选中默认 profile
+                    default_profile = ai_manager.get_default_profile()
+                    if default_profile:
+                        index = self.ai_profile_combo.findData(default_profile.name)
+                        if index >= 0:
+                            self.ai_profile_combo.setCurrentIndex(index)
+            else:
+                # 没有 AI profiles，显示提示
+                self.ai_profile_combo.addItem("无 AI 配置", None)
+
+            print(f"[DEBUG AIChatWidget] Loaded {len(profiles) if profiles else 0} AI profiles")
+
+        except Exception as e:
+            print(f"[DEBUG AIChatWidget] Failed to load AI profiles: {e}")
+            self.ai_profile_combo.addItem("加载失败", None)
+        finally:
+            # 恢复信号
+            self.ai_profile_combo.blockSignals(False)
+
+    def _on_ai_profile_changed(self, index: int):
+        """
+        处理 AI profile 切换事件
+
+        Args:
+            index: 选中的索引
+        """
+        profile_name = self.ai_profile_combo.currentData()
+        if profile_name:
+            print(f"[DEBUG AIChatWidget] AI profile changed to: {profile_name}")
+            self.ai_profile_changed.emit(profile_name)
+        else:
+            print(f"[DEBUG AIChatWidget] AI profile changed to None or invalid")
 
 
 class ExecutableCommandCard(QFrame):

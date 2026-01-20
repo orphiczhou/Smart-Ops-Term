@@ -19,22 +19,44 @@ if not env_loaded:
 class AIResponseThread(QThread):
     """
     Worker thread for AI API calls to prevent blocking UI.
+    支持流式和非流式两种模式。
     """
 
-    # Signals
+    # Signals - 流式模式专用
+    stream_chunk_received = pyqtSignal(str)  # Emitted when each chunk is received
+    stream_finished = pyqtSignal(str)  # Emitted when stream is complete
+
+    # Signals - 非流式模式专用
     response_received = pyqtSignal(str)  # Emitted when response is received
+
+    # Signals - 通用
     error_occurred = pyqtSignal(str)  # Emitted when error occurs
 
-    def __init__(self, client: 'AIClient', messages: List[Dict], parent=None):
+    def __init__(self, client: 'AIClient', messages: List[Dict], stream: bool = True, parent=None):
+        """
+        初始化 AI 响应线程
+
+        Args:
+            client: AIClient 实例
+            messages: 消息列表
+            stream: 是否使用流式调用（默认 True）
+            parent: 父对象
+        """
         super().__init__(parent)
         self.client = client
         self.messages = messages
+        self.stream = stream
 
     def run(self):
         """Execute AI API call in background thread."""
         try:
-            response = self.client._call_api(self.messages)
-            self.response_received.emit(response)
+            if self.stream:
+                # 流式调用
+                self.client._call_api_stream(self.messages, self.stream_chunk_received, self.stream_finished)
+            else:
+                # 非流式调用
+                response = self.client._call_api(self.messages)
+                self.response_received.emit(response)
         except Exception as e:
             self.error_occurred.emit(str(e))
 
@@ -43,10 +65,18 @@ class AIClient(QObject):
     """
     AI Client for communicating with LLM APIs.
     Supports OpenAI and compatible APIs (DeepSeek, Claude, etc.).
+    v1.6.1: 添加流式响应支持
     """
 
-    # Signals
-    response_received = pyqtSignal(str)  # Emitted when response is received
+    # Signals - 非流式模式（向后兼容）
+    response_received = pyqtSignal(str)  # Emitted when complete response is received
+
+    # Signals - 流式模式专用
+    stream_started = pyqtSignal()  # 流式响应开始
+    stream_chunk_received = pyqtSignal(str)  # 每收到一块内容时发出
+    stream_finished = pyqtSignal(str)  # 流式响应完成，参数是完整响应
+
+    # Signals - 通用
     error_occurred = pyqtSignal(str)  # Emitted when error occurs
 
     # System prompt for Linux operations assistant
@@ -123,16 +153,8 @@ class AIClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # Load configuration from environment
-        self.api_key = os.getenv('OPENAI_API_KEY', '')
-        self.api_base = os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
-        self.model = os.getenv('OPENAI_MODEL', 'gpt-4-turbo')
-
-        # Debug: Print configuration
-        print(f"[AI Client] Configuration loaded:")
-        print(f"  API Key: {self.api_key[:10] if self.api_key else 'NOT SET'}...")
-        print(f"  API Base: {self.api_base}")
-        print(f"  Model: {self.model}")
+        # v1.6.0: Load configuration from ConfigManager (priority) or environment (fallback)
+        self._load_config()
 
         # Initialize OpenAI client
         self.client = None
@@ -140,6 +162,106 @@ class AIClient(QObject):
 
         # Conversation history
         self.conversation_history: List[Dict] = []
+
+    def _load_config(self, profile_name: Optional[str] = None):
+        """
+        Load configuration from AIProfileManager, ConfigManager or environment variables.
+
+        v1.6.1: 支持从 AIProfileManager 加载配置
+
+        Args:
+            profile_name: 可选的 AI 配置名称
+        """
+        # 优先级 1: AIProfileManager (指定配置)
+        # 优先级 2: AIProfileManager (默认配置)
+        # 优先级 3: ConfigManager
+        # 优先级 4: 环境变量
+
+        source = "unknown"
+
+        # 尝试从 AIProfileManager 加载
+        try:
+            from managers.ai_profile_manager import AIProfileManager
+
+            ai_profile_manager = AIProfileManager()
+
+            # 获取配置
+            if profile_name:
+                ai_profile = ai_profile_manager.get_profile(profile_name)
+            else:
+                ai_profile = ai_profile_manager.get_default_profile()
+
+            if ai_profile:
+                self.api_key = ai_profile.api_key
+                self.api_base = ai_profile.api_base
+                self.model = ai_profile.model
+                self.timeout = 10
+                self.max_history = 10
+                self._profile_name = ai_profile.name
+                # 从 ConfigManager 读取 temperature, max_tokens, system_prompt
+                try:
+                    from config.config_manager import ConfigManager
+                    config_manager = ConfigManager.get_instance()
+                    ai_settings = config_manager.settings.ai
+                    self.temperature = ai_settings.temperature
+                    self.max_tokens = ai_settings.max_tokens
+                    # 如果配置中的 system_prompt 为空或使用旧版本，使用完整的 DEFAULT_SYSTEM_PROMPT
+                    if not ai_settings.system_prompt or ai_settings.system_prompt == "你是一个专业的 Linux 系统运维助手。":
+                        self.system_prompt = self.DEFAULT_SYSTEM_PROMPT
+                    else:
+                        self.system_prompt = ai_settings.system_prompt
+                except Exception:
+                    self.temperature = 0.7
+                    self.max_tokens = 2000
+                    self.system_prompt = self.DEFAULT_SYSTEM_PROMPT
+                source = f"AIProfileManager ('{ai_profile.name}')"
+                print(f"[DEBUG] Loaded AI profile: {ai_profile.name}")
+            else:
+                # 回退到 ConfigManager
+                raise ValueError("No AI profile found")
+
+        except Exception as e:
+            # 尝试从 ConfigManager 加载
+            print(f"[DEBUG] AIProfileManager not available or no profile: {e}")
+            try:
+                from config.config_manager import ConfigManager
+                config_manager = ConfigManager.get_instance()
+                ai_settings = config_manager.settings.ai
+
+                # Use ConfigManager values if set, otherwise fall back to environment
+                self.api_key = ai_settings.api_key or os.getenv('OPENAI_API_KEY', '')
+                self.api_base = ai_settings.api_base or os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
+                self.model = ai_settings.model or os.getenv('OPENAI_MODEL', 'gpt-4-turbo')
+                self.timeout = ai_settings.timeout
+                self.max_history = ai_settings.max_history
+                self.temperature = ai_settings.temperature
+                self.max_tokens = ai_settings.max_tokens
+                # 如果配置中的 system_prompt 为空或使用旧版本，使用完整的 DEFAULT_SYSTEM_PROMPT
+                if not ai_settings.system_prompt or ai_settings.system_prompt == "你是一个专业的 Linux 系统运维助手。":
+                    self.system_prompt = self.DEFAULT_SYSTEM_PROMPT
+                else:
+                    self.system_prompt = ai_settings.system_prompt
+                self._profile_name = None
+                source = "ConfigManager" if ai_settings.api_key else "environment (.env)"
+            except Exception as e2:
+                # 回退到环境变量
+                print(f"[DEBUG] ConfigManager not available, using environment: {e2}")
+                self.api_key = os.getenv('OPENAI_API_KEY', '')
+                self.api_base = os.getenv('OPENAI_API_BASE', 'https://api.openai.com/v1')
+                self.model = os.getenv('OPENAI_MODEL', 'gpt-4-turbo')
+                self.timeout = 10
+                self.max_history = 10
+                self.temperature = 0.7
+                self.max_tokens = 2000
+                self.system_prompt = self.DEFAULT_SYSTEM_PROMPT
+                self._profile_name = None
+                source = "environment (.env)"
+
+        # Debug: Print configuration
+        print(f"[AI Client] Configuration loaded from {source}:")
+        print(f"  API Key: {self.api_key[:10] if self.api_key else 'NOT SET'}...")
+        print(f"  API Base: {self.api_base}")
+        print(f"  Model: {self.model}")
 
     def _init_client(self):
         """Initialize OpenAI client with configured settings."""
@@ -158,6 +280,32 @@ class AIClient(QObject):
             print(f"Failed to initialize AI client: {e}")
             self.client = None
 
+    def _reload_ai_settings(self):
+        """
+        重新从 ConfigManager 加载 AI 设置
+
+        v1.6.1: 每次调用 API 前重新加载配置，确保使用最新设置
+        """
+        try:
+            from config.config_manager import ConfigManager
+            config_manager = ConfigManager.get_instance()
+            ai_settings = config_manager.settings.ai
+
+            # 更新 AI 参数
+            self.temperature = ai_settings.temperature
+            self.max_tokens = ai_settings.max_tokens
+
+            # 更新系统提示词
+            if not ai_settings.system_prompt or ai_settings.system_prompt == "你是一个专业的 Linux 系统运维助手。":
+                self.system_prompt = self.DEFAULT_SYSTEM_PROMPT
+            else:
+                self.system_prompt = ai_settings.system_prompt
+
+            print(f"[DEBUG] AI settings reloaded: temperature={self.temperature}, max_tokens={self.max_tokens}")
+
+        except Exception as e:
+            print(f"[DEBUG] Failed to reload AI settings: {e}, using cached values")
+
     def is_configured(self) -> bool:
         """Check if AI client is properly configured."""
         # Just check if we have an API key, the client can be created when needed
@@ -166,6 +314,8 @@ class AIClient(QObject):
     def _call_api(self, messages: List[Dict]) -> str:
         """
         Call the AI API and return response text.
+
+        v1.6.1: 每次调用时重新从 ConfigManager 读取最新配置
 
         Args:
             messages: List of message dictionaries with 'role' and 'content'
@@ -176,6 +326,9 @@ class AIClient(QObject):
         Raises:
             Exception: If API call fails
         """
+        # v1.6.1: 每次调用时重新加载配置，确保使用最新设置
+        self._reload_ai_settings()
+
         # Lazy initialization: create client when needed
         if not self.client:
             if not self.api_key:
@@ -194,8 +347,8 @@ class AIClient(QObject):
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=0.7,
-                max_tokens=2000
+                temperature=self.temperature,
+                max_tokens=self.max_tokens
             )
 
             # Extract response text
@@ -205,9 +358,76 @@ class AIClient(QObject):
         except Exception as e:
             raise Exception(f"API call failed: {str(e)}")
 
+    def _call_api_stream(self, messages: List[Dict], chunk_signal: pyqtSignal, finished_signal: pyqtSignal):
+        """
+        流式调用 AI API，逐块发送响应
+
+        v1.6.1: 每次调用时重新从 ConfigManager 读取最新配置
+
+        Args:
+            messages: 消息列表
+            chunk_signal: 每收到一块内容时发出的信号
+            finished_signal: 流式调用完成时发出的信号
+
+        Raises:
+            Exception: If API call fails
+        """
+        # v1.6.1: 每次调用时重新加载配置，确保使用最新设置
+        self._reload_ai_settings()
+
+        # Lazy initialization: create client when needed
+        if not self.client:
+            if not self.api_key:
+                raise Exception("API Key not configured. Please set OPENAI_API_KEY in .env file")
+
+            try:
+                self.client = OpenAI(
+                    api_key=self.api_key,
+                    base_url=self.api_base
+                )
+                print(f"[AI Client] Lazy initialization successful")
+            except Exception as e:
+                raise Exception(f"Failed to initialize AI client: {str(e)}")
+
+        try:
+            # 流式调用
+            stream = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                stream=True
+            )
+
+            full_response = ""
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    full_response += content
+                    # 发送新内容块
+                    chunk_signal.emit(content)
+
+            # 流式调用完成
+            finished_signal.emit(full_response)
+
+        except Exception as e:
+            raise Exception(f"API streaming call failed: {str(e)}")
+
     def ask_async(self, user_message: str, terminal_context: str = ""):
         """
         Send question to AI asynchronously (non-blocking).
+        默认使用流式调用。
+
+        Args:
+            user_message: User's question
+            terminal_context: Recent terminal output for context
+        """
+        # 默认使用流式调用
+        return self.ask_async_stream(user_message, terminal_context)
+
+    def ask_async_stream(self, user_message: str, terminal_context: str = ""):
+        """
+        流式异步发送问题到 AI，实时显示响应。
 
         Args:
             user_message: User's question
@@ -219,11 +439,26 @@ class AIClient(QObject):
         # Add to conversation history
         self.conversation_history.append({"role": "user", "content": user_message})
 
-        # Create worker thread
-        worker = AIResponseThread(self, messages, self)
-        worker.response_received.connect(self._on_response_received)
+        # 发出流式开始信号
+        self.stream_started.emit()
+
+        # Create worker thread with streaming enabled
+        worker = AIResponseThread(self, messages, stream=True, parent=self)
+        worker.stream_finished.connect(self._on_stream_finished)
         worker.error_occurred.connect(self._on_error)
+
+        # 连接流式块信号到 AIClient 的流式信号（透传给 UI）
+        worker.stream_chunk_received.connect(self.stream_chunk_received.emit)
+
         worker.start()
+
+    def _on_stream_finished(self, full_response: str):
+        """流式调用完成时的处理。"""
+        # Add to conversation history
+        self.conversation_history.append({"role": "assistant", "content": full_response})
+
+        # 发出流式完成信号
+        self.stream_finished.emit(full_response)
 
     def ask_sync(self, user_message: str, terminal_context: str = "") -> str:
         """
@@ -259,18 +494,20 @@ class AIClient(QObject):
         """
         messages = []
 
-        # System prompt
+        # System prompt - 使用配置的系统提示词，如果没有则使用默认值
+        system_prompt = getattr(self, 'system_prompt', self.DEFAULT_SYSTEM_PROMPT)
         messages.append({
             "role": "system",
-            "content": self.DEFAULT_SYSTEM_PROMPT
+            "content": system_prompt
         })
 
         # Add conversation history (excluding the last user message which will be added below)
         # This maintains context of the ongoing conversation
-        # Keep only recent history to save tokens (last 10 messages = 5 turns)
+        # Keep only recent history to save tokens (configurable via max_history)
         if len(self.conversation_history) >= 2:
-            # Keep only the most recent 10 messages to save tokens while maintaining context
-            recent_history = self.conversation_history[-10:] if len(self.conversation_history) > 10 else self.conversation_history[:-1]
+            # Use max_history from config (default 10 messages = 5 turns)
+            history_limit = getattr(self, 'max_history', 10) * 2  # Convert to message count
+            recent_history = self.conversation_history[-history_limit:] if len(self.conversation_history) > history_limit else self.conversation_history[:-1]
             messages.extend(recent_history)
 
         # Add terminal context if available
@@ -326,3 +563,25 @@ class AIClient(QObject):
 
         # Reinitialize client
         self._init_client()
+
+    def set_profile(self, profile_name: str):
+        """
+        设置使用的 AI 配置并重新初始化客户端
+
+        v1.6.1: 多 AI API 配置支持，保留对话历史和上下文
+
+        Args:
+            profile_name: AI 配置名称
+        """
+        # 保存现有的对话历史和上下文
+        existing_history = self.conversation_history.copy()
+
+        # 切换配置
+        self._profile_name = profile_name
+        self._load_config(profile_name)
+        self._init_client()
+
+        # 恢复对话历史，保留上下文
+        self.conversation_history = existing_history
+
+        print(f"[DEBUG] AI Client switched to profile: {profile_name} (conversation history preserved: {len(existing_history)} messages)")

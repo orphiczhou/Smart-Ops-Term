@@ -1,24 +1,43 @@
-Smart-Ops-Term v1.0.0
-Release Date: 2025-01-08
+Smart-Ops-Term v1.6.1
+Release Date: 2026-01-20
 Status: Stable Release
 
 Version Details:
 - Major: 1
-- Minor: 0
-- Patch: 0
+- Minor: 6
+- Patch: 1
 
 Release Notes:
+
+## v1.6.1 (2026-01-20) - 配置持久化修复版
+- 修复配置持久化功能，配置现在可以正确保存和加载
+- 修复 SettingsDialog 显示旧值的问题
+- 修复短提示词被错误判断为不完整的问题
+- 修复 AI 配置实时更新机制
+
+## v1.6.0 (2026-01-19) - 配置持久化版
+- **配置管理界面**：4 标签页可视化设置（AI、终端、界面、连接）
+- **JSON 持久化**：自动保存到 `~/.smartops/app_config.json`
+- **窗口记忆**：记住窗口位置、大小、分割器位置
+- **自动迁移**：从旧版 .env 文件自动迁移配置
+
+## v1.5.0 (2026-01-18) - 多连接管理版
+- **多标签页 SSH**：同时管理多个 SSH 连接，每个连接独立会话
+- **连接配置管理**：保存和管理常用连接配置
+- **独立会话**：每个标签页有独立的终端和 AI 聊天
+- **SessionController**：重构为支持多连接的会话控制器
+
+## v1.0.0 (2025-01-08) - 正式版
 - AI 自动反馈机制（执行命令后自动分析结果）
 - 密码输入支持（sudo 等交互式命令）
 - AI 上下文记忆（保留最近 10 条对话历史）
 - 完整的 ANSI 颜色支持（16 色 + 样式）
-- 多种 Bug 修复（命令重复、行距、换行等）
 
 Tech Stack:
-- Python 3.10+
+- Python 3.14+
 - PyQt6 6.7.0
 - Paramiko 3.4.0
-- OpenAI SDK >=1.50.0
+- OpenAI SDK compatible
 
 Documentation:
 - Architecture: ARCHITECTURE.md

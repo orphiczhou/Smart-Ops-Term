@@ -8,6 +8,133 @@
 | v0.2.0 | 2024-12-XX | Phase 2 | AI 集成（聊天界面、上下文管理） |
 | v0.3.0 | 2024-12-XX | Phase 3 | 交互闭环（命令解析、可执行卡片） |
 | v1.0.0 | 2025-01-08 | 正式版 | 功能完善、Bug 修复、ANSI 颜色支持 |
+| v1.5.0 | 2026-01-18 | 多连接 | 多标签页 SSH、连接配置管理、SessionController 重构 |
+| v1.6.0 | 2026-01-19 | 配置持久化 | 可视化设置界面、JSON 持久化、窗口记忆 |
+| v1.6.1 | 2026-01-20 | 配置修复 | 修复配置持久化 bug、短提示词支持 |
+
+---
+
+## v1.6.1 配置持久化修复版 (2026-01-20)
+
+### Bug 修复
+
+#### 1. 配置持久化完全修复
+**问题**：配置修改后无法持久化，重启后恢复默认值
+
+**根因**：
+- `migrate_env_to_config()` 在每次启动时覆盖配置
+- `SettingsDialog.__init__()` 没有调用 `load()`，显示缓存数据
+- 短提示词被错误判断为"不完整"而被替换
+
+**解决方案**：
+- 修改 `migrate_env_to_config()` 只在配置文件不存在时才迁移
+- 在 `SettingsDialog.__init__()` 中添加 `self.config_manager.load()`
+- 简化提示词判断逻辑：只有空字符串才使用默认提示词
+
+**相关文件**：
+- [src/main.py:22-38](src/main.py) - migrate_env_to_config() 修复
+- [src/views/settings_dialog.py:43](src/views/settings_dialog.py) - 添加 load() 调用
+- [src/views/settings_dialog.py:278-294](src/views/settings_dialog.py) - 简化提示词逻辑
+
+#### 2. AI 配置实时更新机制
+**问题**：Settings 修改后，正在运行的会话无法获取最新配置
+
+**解决方案**：
+- `AIClient._reload_ai_settings()` 每次调用 API 前重新从 ConfigManager 读取配置
+
+**相关文件**：
+- [src/ai/ai_client.py:287-365](src/ai/ai_client.py)
+
+---
+
+## v1.6.0 配置持久化版 (2026-01-19)
+
+### 新增功能
+
+#### 1. 可视化配置管理界面
+**文件**: [src/views/settings_dialog.py](src/views/settings_dialog.py)
+
+4 标签页设置界面：
+- **AI Settings**：Temperature（滑动条）、Max Tokens、Max History、System Prompt
+- **Terminal**：字体、颜色、光标闪烁、滚动行为
+- **Interface**：窗口大小、工具栏/状态栏显示
+- **Connection**：超时设置、自动保存历史
+
+#### 2. JSON 配置持久化
+**文件**: [src/config/config_manager.py](src/config/config_manager.py)
+
+- 单例模式统一管理配置
+- 自动保存到 `~/.smartops/app_config.json`
+- 启动时自动加载
+
+#### 3. 配置数据模型
+**文件**: [src/config/settings.py](src/config/settings.py)
+
+- 使用 Python dataclass 定义类型安全的配置模型
+- AISettings、TerminalSettings、UISettings、ConnectionSettings
+- 支持 `to_dict()` / `from_dict()` 序列化
+
+#### 4. 窗口状态记忆
+**文件**: [src/views/multi_terminal_window.py:537-591](src/views/multi_terminal_window.py)
+
+- 记住窗口位置、大小、分割器位置
+- 下次启动恢复窗口状态
+
+#### 5. .env 自动迁移
+**文件**: [src/main.py:133-158](src/main.py)
+
+- 首次运行检测 `.env` 文件
+- 自动迁移到新的 JSON 配置
+- 迁移后保留 `.env` 作为备份
+
+### 测试验证
+
+- ✅ 配置保存到文件
+- ✅ 配置重启后加载
+- ✅ Settings 对话框显示正确值
+- ✅ 新连接使用保存的配置
+- ✅ .env 迁移成功
+
+---
+
+## v1.5.0 多连接管理版 (2026-01-18)
+
+### 新增功能
+
+#### 1. 多标签页终端窗口
+**文件**: [src/views/multi_terminal_window.py](src/views/multi_terminal_window.py)
+
+- 使用 QTabWidget 支持多个 SSH 连接
+- 每个标签页独立的终端和 AI 聊天
+- 标签页可关闭、切换
+- 工具栏：新建连接按钮
+
+#### 2. SessionController 会话控制器
+**文件**: [src/controllers/session_controller.py](src/controllers/session_controller.py)
+
+- 从 AppController 重构提取，支持多连接
+- 每个 session 独立管理 SSH 和 AI
+- 支持密码输入时暂停 AI 反馈等待
+
+#### 3. 连接配置管理
+**文件**: [src/managers/connection_profile.py](src/managers/connection_profile.py)
+
+- ConnectionProfile 数据模型
+- ProfileManager 管理保存的连接配置
+- JSON 持久化到 `~/.smartops/connection_profiles.json`
+
+#### 4. 连接对话框增强
+**文件**: [src/views/connection_dialog.py](src/views/connection_dialog.py)
+
+- 支持选择保存的连接配置
+- 中文占位符提示
+- v1.6.1: 新增 AI Profile 选择
+
+### 架构改进
+
+- 从单一 AppController 重构为 SessionController
+- 支持同时管理多个 SSH 会话
+- 连接历史保存和恢复
 
 ---
 

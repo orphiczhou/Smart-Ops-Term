@@ -2,9 +2,9 @@
 
 🚀 **AI 辅助远程运维终端** - 人机协同的智能远程终端工具
 
-[![Version](https://img.shields.io/badge/Version-1.0.0-blue)](version.txt)
+[![Version](https://img.shields.io/badge/Version-1.6.1-blue)](version.txt)
 [![Status](https://img.shields.io/badge/Status-Stable-brightgreen)]()
-[![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.14+-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
@@ -21,20 +21,29 @@ Smart-Ops-Term 是一个基于 Python 的 GUI 应用程序，实现**"人机协�
   - 完整的 ANSI 颜色支持（16 色 + 样式）
   - 命令历史导航（上下箭头）
   - 自动密码输入（sudo 等交互式命令）
+  - **多标签页支持** (v1.5.0) - 同时管理多个 SSH 连接
 
 - **🤖 AI 智能助手**
   - 深度集成大语言模型（OpenAI/DeepSeek/Claude 等）
   - 自动分析命令执行结果并继续下一步
-  - 对话上下文记忆（最近 10 条消息）
+  - 对话上下文记忆（最近 10-15 条消息）
   - 终端上下文感知（滑动窗口，500 行）
   - 危险命令检测和安全警告
   - 可执行命令卡片（一键运行）
+  - **AI 配置管理** (v1.6.0) - 可视化配置界面，支持多 AI API
 
 - **🎨 现代化 UI 设计**
   - 左右分栏布局（可拖动调整）
   - Markdown 渲染支持
   - 消息气泡设计
   - 经典终端风格（黑底绿字）
+  - **可定制化界面** (v1.6.0) - 字体、颜色、窗口大小可配置
+
+- **💾 配置持久化** (v1.6.0)
+  - 可视化设置对话框（4 个标签页）
+  - 自动保存配置到 `~/.smartops/app_config.json`
+  - 窗口状态记忆（位置、大小、分割器）
+  - 从旧版 .env 自动迁移配置
 
 ---
 
@@ -42,11 +51,11 @@ Smart-Ops-Term 是一个基于 Python 的 GUI 应用程序，实现**"人机协�
 
 | 组件 | 技术 | 版本 | 用途 |
 |------|------|------|------|
-| 编程语言 | Python | 3.10+ | 开发语言 |
+| 编程语言 | Python | 3.14+ | 开发语言 |
 | GUI 框架 | PyQt6 | 6.7.0 | 用户界面 |
 | SSH 库 | Paramiko | 3.4.0 | 远程连接 |
 | AI SDK | OpenAI | >=1.50.0 | LLM 集成 |
-| 环境管理 | python-dotenv | 1.0.0 | 配置管理 |
+| 环境管理 | python-dotenv | 1.0.0 | 配置管理（回退） |
 
 ---
 
@@ -79,13 +88,28 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. 配置环境变量
+### 4. 配置应用
 
-```bash
-cp .env.example .env
-```
+**方式一：首次启动自动配置** (推荐)
 
-编辑 `.env` 文件，填入你的 API Key：
+首次启动时，如果有 `.env` 文件，会自动迁移到新配置系统。
+
+**方式二：通过设置界面配置**
+
+1. 启动应用
+2. 点击工具栏的 "⚙️ Settings" 按钮
+3. 在 "AI Settings" 标签页中配置：
+   - API Key
+   - API Base
+   - Model
+   - Temperature
+   - Max Tokens
+   - Max History
+   - System Prompt
+
+**方式三：使用 .env 文件** (向后兼容)
+
+创建 `.env` 文件：
 
 ```env
 # OpenAI
@@ -97,6 +121,10 @@ OPENAI_MODEL=gpt-4-turbo
 # OPENAI_API_BASE=https://api.deepseek.com/v1
 # OPENAI_MODEL=deepseek-chat
 ```
+
+**配置文件位置**：
+- 新版配置: `~/.smartops/app_config.json` (优先)
+- 旧版配置: `.env` (回退)
 
 ---
 
@@ -117,10 +145,11 @@ python src/main.py
 ### 使用流程
 
 1. **启动应用**
-   - 应用启动后，你会看到左右分栏界面
-   - 左侧是终端，右侧是 AI 助手
+   - 应用启动后，你会看到多标签页界面
+   - 每个标签页包含左右分栏（终端 + AI 助手）
 
-2. **连接 SSH 服务器（可选）**
+2. **创建新连接**
+   - 点击 "New Connection" 按钮创建新标签页
    - 按 `Ctrl+O` 或点击菜单 `File > Connect...`
    - 输入服务器信息（Host、Port、Username、Password）
    - 点击 OK 连接
@@ -132,7 +161,18 @@ python src/main.py
    - 点击 "Run Command" 按钮执行命令
    - AI 会自动分析结果并继续下一步
 
-4. **隐私模式**
+4. **多标签页管理** (v1.5.0)
+   - 每个标签页有独立的终端会话和 AI 对话
+   - 点击标签页切换不同连接
+   - 点击标签页的关闭按钮断开连接
+
+5. **配置设置** (v1.6.0)
+   - 点击工具栏 "⚙️ Settings" 按钮打开设置对话框
+   - 配置 AI、终端、界面、连接等选项
+   - 点击 Apply 应用，或 OK 应用并关闭
+   - 配置自动保存，重启后生效
+
+6. **隐私模式**
    - 勾选 "Privacy Mode" 复选框
    - 终端内容不会发送给 AI（适合敏感操作）
 
@@ -199,12 +239,22 @@ Smart-Ops-Term/
 ├── src/
 │   ├── main.py                    # 程序入口
 │   ├── controllers/               # Controller 层（业务逻辑）
-│   │   └── app_controller.py      # 主控制器
+│   │   ├── app_controller.py      # 主控制器
+│   │   └── session_controller.py  # 会话控制器 (v1.5.0)
 │   ├── views/                     # View 层（UI 组件）
-│   │   ├── main_window.py         # 主窗口
-│   │   ├── terminal_widget.py     # 终端组件
-│   │   ├── chat_widget.py         # AI 聊天组件
-│   │   └── password_dialog.py     # 密码对话框
+│   │   ├── multi_terminal_window.py   # 多标签页主窗口 (v1.5.0)
+│   │   ├── session_tab.py             # 会话标签页 (v1.5.0)
+│   │   ├── terminal_widget.py         # 终端组件
+│   │   ├── chat_widget.py             # AI 聊天组件
+│   │   ├── settings_dialog.py         # 设置对话框 (v1.6.0)
+│   │   ├── ai_profiles_tab.py         # AI 配置管理 (v1.6.0)
+│   │   ├── connection_profiles_tab.py # 连接配置管理 (v1.6.0)
+│   │   └── password_dialog.py         # 密码对话框
+│   ├── config/                    # 配置模块 (v1.6.0)
+│   │   ├── settings.py             # 配置数据模型
+│   │   └── config_manager.py       # 配置管理器
+│   ├── managers/                  # 管理器模块
+│   │   └── connection_manager.py   # 连接管理器 (v1.5.0)
 │   ├── models/                    # Model 层（SSH 连接）
 │   │   ├── connection_handler.py  # 连接基类
 │   │   └── ssh_handler.py         # SSH 处理器
@@ -214,8 +264,10 @@ Smart-Ops-Term/
 │   │   └── command_parser.py      # 命令解析器
 │   └── utils/                     # 工具模块
 │       └── ansi_filter.py         # ANSI 转换器
-├── config/                        # 配置文件
-│   └── settings.json              # 应用设置
+├── docs/                          # 文档目录
+│   ├── plans/                     # 开发计划
+│   ├── v1.6.0-config-persistence-summary.md
+│   └── feature-verification-report.md
 ├── .env.example                   # 环境变量示例
 ├── requirements.txt               # 依赖列表
 ├── README.md                      # 项目说明
@@ -234,6 +286,31 @@ Smart-Ops-Term/
 ---
 
 ## 🎯 版本历史
+
+### ✅ v1.6.1 配置持久化修复版 (2026-01-20)
+
+**Bug 修复**：
+- ✅ 修复配置持久化功能，配置现在可以正确保存和加载
+- ✅ 修复 SettingsDialog 显示旧值的问题
+- ✅ 修复短提示词被错误判断为不完整的问题
+- ✅ 修复 AI 配置实时更新机制
+
+### ✅ v1.6.0 配置持久化版 (2026-01-19)
+
+**新增功能**：
+- ✅ **配置管理界面**：4 标签页可视化设置（AI、终端、界面、连接）
+- ✅ **JSON 持久化**：自动保存到 `~/.smartops/app_config.json`
+- ✅ **窗口记忆**：记住窗口位置、大小、分割器位置
+- ✅ **自动迁移**：从旧版 .env 文件自动迁移配置
+- ✅ **AI 配置管理**：支持多 AI API 配置切换
+
+### ✅ v1.5.0 多连接管理版 (2026-01-18)
+
+**新增功能**：
+- ✅ **多标签页 SSH**：同时管理多个 SSH 连接，每个连接独立会话
+- ✅ **连接配置管理**：保存和管理常用连接配置
+- ✅ **独立会话**：每个标签页有独立的终端和 AI 聊天
+- ✅ **SessionController**：重构为支持多连接的会话控制器
 
 ### ✅ v1.0.0 正式版本 (2025-01-08)
 
@@ -254,6 +331,7 @@ Smart-Ops-Term/
 📖 **详细信息**：
 - [架构设计说明书](ARCHITECTURE.md) - 完整的技术架构
 - [开发更新记录](CHANGELOG.md) - 完整的开发过程和踩坑经验
+- [功能验证报告](docs/feature-verification-report.md) - v1.5.0/v1.6.0/v1.6.1 验证报告
 
 ### 📋 历史阶段
 
@@ -330,10 +408,9 @@ OPENAI_MODEL=your-model-name
   - 预估工作量：15-30 小时
 
 ### 优先级 P1
-- **多标签页支持** - 同时管理多个 SSH 连接
-- **配置文件持久化** - 保存用户设置
 - **命令自动补全** - Tab 键补全命令和路径
 - **主题切换** - 支持多种终端主题
+- **单元测试** - 添加测试覆盖
 
 ### 优先级 P2
 - **SFTP 文件传输** - 支持文件上传下载
@@ -419,8 +496,8 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-**当前版本**: 1.0.0 (Stable Release)
-**发布日期**: 2025-01-08
+**当前版本**: 1.6.1 (Stable Release)
+**发布日期**: 2026-01-20
 **项目状态**: ✅ 功能完整，可用于生产环境
 
 ---

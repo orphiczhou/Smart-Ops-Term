@@ -1,0 +1,368 @@
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 529, in _open_settings_dialog
+    print(f"[DEBUG] SettingsDialog closed", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 532, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 508, in closeEvent
+    self._save_window_state()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _save_window_state
+    print("[DEBUG] Window state saved", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 152, in main
+    print(f"[DEBUG] Event loop ended with exit code: {exit_code}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 165, in <module>
+    main()
+    ~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 157, in main
+    print(f"[CRITICAL ERROR] {e}", file=sys.stderr, flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 528, in closeEvent
+    self._save_window_state()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 572, in _save_window_state
+    print("[DEBUG] Window state saved", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 152, in main
+    print(f"[DEBUG] Event loop ended with exit code: {exit_code}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 165, in <module>
+    main()
+    ~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 157, in main
+    print(f"[CRITICAL ERROR] {e}", file=sys.stderr, flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 559, in _on_settings_changed
+    print("[DEBUG] Settings changed, reloading configuration", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 549, in _open_settings_dialog
+    print(f"[DEBUG] SettingsDialog closed", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 528, in closeEvent
+    self._save_window_state()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 572, in _save_window_state
+    print("[DEBUG] Window state saved", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 152, in main
+    print(f"[DEBUG] Event loop ended with exit code: {exit_code}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 165, in <module>
+    main()
+    ~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 157, in main
+    print(f"[CRITICAL ERROR] {e}", file=sys.stderr, flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 131, in _safe_new_connection
+    print("[DEBUG] _safe_new_connection called", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 135, in _safe_new_connection
+    print(f"[ERROR] Exception in new_connection: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 544, in _open_settings_dialog
+    print(f"[DEBUG] Creating SettingsDialog...", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 552, in _open_settings_dialog
+    print(f"[ERROR] Failed to open settings dialog: {e}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 528, in closeEvent
+    self._save_window_state()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\views\multi_terminal_window.py", line 572, in _save_window_state
+    print("[DEBUG] Window state saved", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
+================================================================================
+UNHANDLED EXCEPTION:
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 162, in main
+    print(f"[DEBUG] Event loop ended with exit code: {exit_code}", flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 175, in <module>
+    main()
+    ~~~~^^
+  File "D:\Codes\Smart-Ops-Term\src\main.py", line 167, in main
+    print(f"[CRITICAL ERROR] {e}", file=sys.stderr, flush=True)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 22] Invalid argument
+================================================================================
+
